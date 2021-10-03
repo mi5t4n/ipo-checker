@@ -16,9 +16,9 @@ def run_ipo_checker(args):
         body = response.json()
 
         if (body['success']):
-            print(chalk.green( "[" + data[1] + "]" + " :: " + body['message']))
+            print(chalk.green( "[" + data[1].strip() + "]" + " :: " + body['message']))
         else:
-            print(chalk.red( "[" + data[1] + "]" + " :: " + body['message']))
+            print(chalk.red( "[" + data[1].strip() + "]" + " :: " + body['message']))
 
 def make_request(company, boid):
     url = "https://iporesult.cdsc.com.np/result/result/check";
@@ -39,7 +39,7 @@ def make_request(company, boid):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='IPO Checker for a list.')
-    parser.add_argument('--company', type=str, required=True, help='Comany ID')
+    parser.add_argument('--company', type=str, required=True, help='Company ID')
     parser.add_argument('--file', type=str, required=True,
                         help='Name of the pattern file.')
     args = parser.parse_args()
