@@ -23,7 +23,7 @@ Checks more than one account for an IPO.
 2. Add BOID and username in the file.
 
 # How to use the tool?
-    pipenv run ipo --file=list.txt
+    pipenv run ipo [ --file=list.txt ]
 
     [John Doe] :: Congratulation Alloted !!! Alloted quantity : 10
     [Joshue Doe] :: Sorry, not alloted for the entered BOID.
