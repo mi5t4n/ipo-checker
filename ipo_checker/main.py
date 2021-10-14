@@ -30,7 +30,18 @@ def run_ipo_checker(args):
 
         return
 
-    bulk_check(args, company)
+    start = time.time()
+    results = bulk_check(args, company)
+    end = time.time()
+
+    print("\n")
+
+    if results:
+        print(chalk.green(f"Alloted:\t{results.count(True)}"))
+        print(chalk.red(f"Not Alloted:\t{results.count(False)}"))
+        print(chalk.yellow(f"Invalid BOID:\t{results.count(None)}"))
+
+    print(chalk.bold(f"Time elapsed:\t{(end - start):.2f}s"))
 
 
 def bulk_check(args, company):
@@ -40,16 +51,18 @@ def bulk_check(args, company):
         loop = asyncio.get_event_loop()
 
         all_groups = asyncio.gather(
-            *[check_ipo(company, investor) for investor in file], return_exceptions=True
+            *[check_ipo(company, investor) for investor in file]
         )
-        loop.run_until_complete(all_groups)
+        results = loop.run_until_complete(all_groups)
 
         loop.close()
+
+        return results
 
     except Exception:
         print(traceback.format_exc(limit=1, chain=False))
 
-        print("Failed to check IPOs.")
+        print(chalk.red("Failed to check IPOs."))
 
         return False
 
@@ -90,7 +103,7 @@ async def check_ipo(company, investor):
     response = check_result(company, data[0])
 
     if not (response and response.ok):
-        return False
+        return None
 
     body = response.json()
     message = f"[{data[1].strip()}] :: {body['message']}"
