@@ -1,5 +1,7 @@
 #! /usr/bin/python
 
+import time
+import asyncio
 import argparse
 import requests
 import inquirer
@@ -28,32 +30,39 @@ def run_ipo_checker(args):
 
         return
 
-    bulk_check(args, company)
+    start = time.time()
+    results = bulk_check(args, company)
+    end = time.time()
+
+    print("\n")
+
+    if results:
+        print(chalk.green(f"Alloted:\t{results.count(True)}"))
+        print(chalk.red(f"Not Alloted:\t{results.count(False)}"))
+        print(chalk.yellow(f"Invalid BOID:\t{results.count(None)}"))
+
+    print(chalk.bold(f"Time elapsed:\t{(end - start):.2f}s"))
 
 
 def bulk_check(args, company):
     file = open(args.file, "r")
 
     try:
-        for line in file:
-            data = line.strip().split(",")
-            response = check_single_ipo(company, data[0])
+        loop = asyncio.get_event_loop()
 
-            if not (response and response.ok):
-                continue
+        all_groups = asyncio.gather(
+            *[check_ipo(company, investor) for investor in file]
+        )
+        results = loop.run_until_complete(all_groups)
 
-            body = response.json()
-            message = f"[{data[1].strip()}] :: {body['message']}"
+        loop.close()
 
-            if body["success"]:
-                print(chalk.green(message))
-            else:
-                print(chalk.red(message))
+        return results
 
     except Exception:
         print(traceback.format_exc(limit=1, chain=False))
 
-        print("Failed to check IPOs.")
+        print(chalk.red("Failed to check IPOs."))
 
         return False
 
@@ -89,7 +98,27 @@ def get_company():
         return False
 
 
-def check_single_ipo(company, boid):
+async def check_ipo(company, investor):
+    data = investor.strip().split(",")
+    response = check_result(company, data[0])
+
+    if not (response and response.ok):
+        return None
+
+    body = response.json()
+    message = f"[{data[1].strip()}] :: {body['message']}"
+
+    if body["success"]:
+        print(chalk.green(message))
+
+        return True
+
+    print(chalk.red(message))
+
+    return False
+
+
+def check_result(company, boid):
     url = base_url + "/result/result/check"
 
     headers = {
