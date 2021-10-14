@@ -1,5 +1,7 @@
 #! /usr/bin/python
 
+import time
+import asyncio
 import argparse
 import requests
 import inquirer
@@ -35,20 +37,14 @@ def bulk_check(args, company):
     file = open(args.file, "r")
 
     try:
-        for line in file:
-            data = line.strip().split(",")
-            response = check_single_ipo(company, data[0])
+        loop = asyncio.get_event_loop()
 
-            if not (response and response.ok):
-                continue
+        all_groups = asyncio.gather(
+            *[check_ipo(company, investor) for investor in file], return_exceptions=True
+        )
+        loop.run_until_complete(all_groups)
 
-            body = response.json()
-            message = f"[{data[1].strip()}] :: {body['message']}"
-
-            if body["success"]:
-                print(chalk.green(message))
-            else:
-                print(chalk.red(message))
+        loop.close()
 
     except Exception:
         print(traceback.format_exc(limit=1, chain=False))
@@ -89,7 +85,27 @@ def get_company():
         return False
 
 
-def check_single_ipo(company, boid):
+async def check_ipo(company, investor):
+    data = investor.strip().split(",")
+    response = check_result(company, data[0])
+
+    if not (response and response.ok):
+        return False
+
+    body = response.json()
+    message = f"[{data[1].strip()}] :: {body['message']}"
+
+    if body["success"]:
+        print(chalk.green(message))
+
+        return True
+
+    print(chalk.red(message))
+
+    return False
+
+
+def check_result(company, boid):
     url = base_url + "/result/result/check"
 
     headers = {
