@@ -36,10 +36,10 @@ Checks more than one account for an IPO.
 
 1. Install packages in development mode: `pipenv install --dev`
 2. Install Pre-commit Hook: `pipenv run pre-commit install`
-3. mypy Typing install: `pipenv run --install-types`
+3. mypy Typing install: `pipenv run mypy ipo_checker --install-types`
 
 # Other Commands
 
 1. Run Pre-commit Hook: `pipenv run pre-commit run --all-files -v`
-2. Check MyPy Typing: `pipenv run mypy ipo_checkermo`
+2. Check MyPy Typing: `pipenv run mypy ipo_checker`
 3. Format Black: `pipenv run black .`
