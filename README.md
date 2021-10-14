@@ -18,8 +18,12 @@ Checks more than one account for an IPO.
 2. Initialize virtualize environment in the project folder using `pipenv shell`.
 3. Install python libraries and CLI `pipenv install -e .`
 
+# Configuration
+1. Copy `list.txt.example` as `list.txt`
+2. Add BOID and username in the file.
+
 # How to use the tool?
-    pip run ipo --file=list.txt
+    pipenv run ipo --file=list.txt
 
     [John Doe] :: Congratulation Alloted !!! Alloted quantity : 10
     [Joshue Doe] :: Sorry, not alloted for the entered BOID.

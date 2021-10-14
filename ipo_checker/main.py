@@ -9,8 +9,8 @@ base_url = "https://iporesult.cdsc.com.np"
 
 def cli():
     parser = argparse.ArgumentParser(description='IPO Checker for a list.')
-    parser.add_argument('--file', type=str,
-                        help='Name of the pattern file.', default='list.txt')
+    parser.add_argument('--file', type=str, required=True,
+                        help='Name of the pattern file.')
     args = parser.parse_args()
 
     run_ipo_checker(args)
