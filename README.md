@@ -16,10 +16,10 @@ Checks more than one account for an IPO.
 # Installation
 1. Install [pipenv](https://pipenv.pypa.io/en/latest/).
 2. Initialize virtualize environment in the project folder using `pipenv shell`.
-3. Install python libraries `pipenv install`
+3. Install python libraries and CLI `pipenv install -e .`
 
 # How to use the tool?
-    python ipo_checker.py --file=list.txt
+    pip run ipo --file=list.txt
 
     [John Doe] :: Congratulation Alloted !!! Alloted quantity : 10
     [Joshue Doe] :: Sorry, not alloted for the entered BOID.

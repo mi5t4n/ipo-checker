@@ -7,8 +7,6 @@ name = "pypi"
 requests = "*"
 yachalk = "*"
 inquirer = "*"
+ipo = {editable = true, path = "."}
 
 [dev-packages]
-
-[requires]
-python_version = "3.8"
