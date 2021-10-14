@@ -12,4 +12,5 @@ inquirer = "*"
 mypy = "*"
 flake8 = "*"
 black = "==21.9b0"
+pre-commit = "==2.15.0"
 ipo = {editable = true, path = "."}
