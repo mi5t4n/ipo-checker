@@ -14,4 +14,5 @@ flake8 = "*"
 pytest = "*"
 black = "==21.9b0"
 pre-commit = "==2.15.0"
+types-requests = "*"
 ipo = {editable = true, path = "."}
