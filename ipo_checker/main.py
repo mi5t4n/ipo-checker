@@ -2,8 +2,10 @@
 
 import argparse
 import requests
-from yachalk import chalk
 import inquirer
+import traceback
+
+from yachalk import chalk
 
 base_url = "https://iporesult.cdsc.com.np"
 
@@ -21,49 +23,70 @@ def cli():
 def run_ipo_checker(args):
     company = get_company()
 
+    if not company:
+        print(chalk.red(f"Failed to fetch companies."))
+
+        return
+
     bulk_check(args, company)
 
 
 def bulk_check(args, company):
     file = open(args.file, "r")
-    for line in file:
-        data = line.strip().split(",")
-        response = check_single_ipo(company, data[0])
 
-        if 200 != response.status_code:
-            continue
+    try:
+        for line in file:
+            data = line.strip().split(",")
+            response = check_single_ipo(company, data[0])
 
-        body = response.json()
+            if not (response and response.ok):
+                continue
 
-        if body["success"]:
-            print(chalk.green("[" + data[1].strip() + "]" + " :: " + body["message"]))
-        else:
-            print(chalk.red("[" + data[1].strip() + "]" + " :: " + body["message"]))
+            body = response.json()
+            message = f"[{data[1].strip()}] :: {body['message']}"
+
+            if body["success"]:
+                print(chalk.green(message))
+            else:
+                print(chalk.red(message))
+
+    except Exception:
+        print(traceback.format_exc(limit=1, chain=False))
+
+        print("Failed to check IPOs.")
+
+        return False
 
 
 def get_company():
+    companies = {}
     url = base_url + "/result/companyShares/fileUploaded"
 
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
 
-    body = response.json()
+        body = response.json()
 
-    if not body["success"]:
+        if not body["success"]:
+            return False
+
+        for company in body["body"]:
+            companies[company["name"]] = company["id"]
+
+        companies = sorted(companies.items(), key=lambda x: x[1], reverse=True)
+
+        questions = [
+            inquirer.List("company", message="Select the company?", choices=companies)
+        ]
+
+        answers = inquirer.prompt(questions)
+
+        return answers["company"]
+
+    except Exception:
+        print(traceback.format_exc(limit=1, chain=False))
+
         return False
-
-    companies = {}
-    for company in body["body"]:
-        companies[company["name"]] = company["id"]
-
-    companies = sorted(companies.items(), key=lambda x: x[1], reverse=True)
-
-    questions = [
-        inquirer.List("company", message="Select the company?", choices=companies)
-    ]
-
-    answers = inquirer.prompt(questions)
-
-    return answers["company"]
 
 
 def check_single_ipo(company, boid):
@@ -78,7 +101,7 @@ def check_single_ipo(company, boid):
 
     payload = {"boid": str(boid), "companyShareId": str(company)}
 
-    return requests.post(url, json=payload)
+    return requests.post(url, headers=headers, json=payload)
 
 
 if __name__ == "__main__":
