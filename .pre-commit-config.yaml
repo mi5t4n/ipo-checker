@@ -24,5 +24,13 @@ repos:
     -   id: black
         name: Black Formatting
         entry: pipenv run black .
+        pass_filenames: false
+        language: system
+        types: [python]
+
+    -   id: pytest
+        name: Check pytest unit tests pass
+        entry: pipenv run pytest
+        pass_filenames: false
         language: system
         types: [python]
