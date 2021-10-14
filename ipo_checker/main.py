@@ -1,9 +1,13 @@
 #! /usr/bin/python
 
+import time
+import asyncio
 import argparse
 import requests
-from yachalk import chalk
 import inquirer
+import traceback
+
+from yachalk import chalk
 
 base_url = "https://iporesult.cdsc.com.np"
 
@@ -21,52 +25,100 @@ def cli():
 def run_ipo_checker(args):
     company = get_company()
 
-    bulk_check(args, company)
+    if not company:
+        print(chalk.red(f"Failed to fetch companies."))
+
+        return
+
+    start = time.time()
+    results = bulk_check(args, company)
+    end = time.time()
+
+    print("\n")
+
+    if results:
+        print(chalk.green(f"Alloted:\t{results.count(True)}"))
+        print(chalk.red(f"Not Alloted:\t{results.count(False)}"))
+        print(chalk.yellow(f"Invalid BOID:\t{results.count(None)}"))
+
+    print(chalk.bold(f"Time elapsed:\t{(end - start):.2f}s"))
 
 
 def bulk_check(args, company):
     file = open(args.file, "r")
-    for line in file:
-        data = line.strip().split(",")
-        response = check_single_ipo(company, data[0])
 
-        if 200 != response.status_code:
-            continue
+    try:
+        loop = asyncio.get_event_loop()
 
-        body = response.json()
+        all_groups = asyncio.gather(
+            *[check_ipo(company, investor) for investor in file]
+        )
+        results = loop.run_until_complete(all_groups)
 
-        if body["success"]:
-            print(chalk.green("[" + data[1].strip() + "]" + " :: " + body["message"]))
-        else:
-            print(chalk.red("[" + data[1].strip() + "]" + " :: " + body["message"]))
+        loop.close()
+
+        return results
+
+    except Exception:
+        print(traceback.format_exc(limit=1, chain=False))
+
+        print(chalk.red("Failed to check IPOs."))
+
+        return False
 
 
 def get_company():
+    companies = {}
     url = base_url + "/result/companyShares/fileUploaded"
 
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
 
-    body = response.json()
+        body = response.json()
 
-    if not body["success"]:
+        if not body["success"]:
+            return False
+
+        for company in body["body"]:
+            companies[company["name"]] = company["id"]
+
+        companies = sorted(companies.items(), key=lambda x: x[1], reverse=True)
+
+        questions = [
+            inquirer.List("company", message="Select the company?", choices=companies)
+        ]
+
+        answers = inquirer.prompt(questions)
+
+        return answers["company"]
+
+    except Exception:
+        print(traceback.format_exc(limit=1, chain=False))
+
         return False
 
-    companies = {}
-    for company in body["body"]:
-        companies[company["name"]] = company["id"]
 
-    companies = sorted(companies.items(), key=lambda x: x[1], reverse=True)
+async def check_ipo(company, investor):
+    data = investor.strip().split(",")
+    response = check_result(company, data[0])
 
-    questions = [
-        inquirer.List("company", message="Select the company?", choices=companies)
-    ]
+    if not (response and response.ok):
+        return None
 
-    answers = inquirer.prompt(questions)
+    body = response.json()
+    message = f"[{data[1].strip()}] :: {body['message']}"
 
-    return answers["company"]
+    if body["success"]:
+        print(chalk.green(message))
+
+        return True
+
+    print(chalk.red(message))
+
+    return False
 
 
-def check_single_ipo(company, boid):
+def check_result(company, boid):
     url = base_url + "/result/result/check"
 
     headers = {
@@ -78,7 +130,7 @@ def check_single_ipo(company, boid):
 
     payload = {"boid": str(boid), "companyShareId": str(company)}
 
-    return requests.post(url, json=payload)
+    return requests.post(url, headers=headers, json=payload)
 
 
 if __name__ == "__main__":
