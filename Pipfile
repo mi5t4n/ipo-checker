@@ -7,6 +7,8 @@ name = "pypi"
 requests = "*"
 yachalk = "*"
 inquirer = "*"
+black = "==21.9b0"
+
 ipo = {editable = true, path = "."}
 
 [dev-packages]

@@ -7,10 +7,12 @@ import inquirer
 
 base_url = "https://iporesult.cdsc.com.np"
 
+
 def cli():
-    parser = argparse.ArgumentParser(description='IPO Checker for a list.')
-    parser.add_argument('--file', type=str,
-                        help='Name of the pattern file.', default='list.txt')
+    parser = argparse.ArgumentParser(description="IPO Checker for a list.")
+    parser.add_argument(
+        "--file", type=str, help="Name of the pattern file.", default="list.txt"
+    )
     args = parser.parse_args()
 
     run_ipo_checker(args)
@@ -33,10 +35,11 @@ def bulk_check(args, company):
 
         body = response.json()
 
-        if (body['success']):
-            print(chalk.green( "[" + data[1].strip() + "]" + " :: " + body['message']))
+        if body["success"]:
+            print(chalk.green("[" + data[1].strip() + "]" + " :: " + body["message"]))
         else:
-            print(chalk.red( "[" + data[1].strip() + "]" + " :: " + body['message']))
+            print(chalk.red("[" + data[1].strip() + "]" + " :: " + body["message"]))
+
 
 def get_company():
     url = base_url + "/result/companyShares/fileUploaded"
@@ -45,39 +48,38 @@ def get_company():
 
     body = response.json()
 
-    if not body['success'] :
+    if not body["success"]:
         return False
 
     companies = {}
-    for company in body['body']:
-        companies[company['name']] = company['id']
+    for company in body["body"]:
+        companies[company["name"]] = company["id"]
 
     companies = sorted(companies.items(), key=lambda x: x[1], reverse=True)
 
-    questions=[
-        inquirer.List("company", message = "Select the company?", choices=companies)
+    questions = [
+        inquirer.List("company", message="Select the company?", choices=companies)
     ]
 
     answers = inquirer.prompt(questions)
 
-    return answers['company']
+    return answers["company"]
+
 
 def check_single_ipo(company, boid):
-    url = base_url + "/result/result/check";
+    url = base_url + "/result/result/check"
 
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36",
         "Origin": base_url,
         "Referer": base_url,
-        "Content-Type":"application/json",
+        "Content-Type": "application/json",
     }
 
-    payload = {
-        "boid": str(boid),
-        "companyShareId": str(company)
-    }
+    payload = {"boid": str(boid), "companyShareId": str(company)}
 
-    return requests.post(url, json=payload);
+    return requests.post(url, json=payload)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     cli()
