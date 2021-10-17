@@ -1,0 +1,28 @@
+repos:
+-   repo: git://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+    -   id: check-ast
+
+-   repo: local
+    hooks:
+    -   id: flake8
+        name: Flake8
+        entry: pipenv run flake8
+        language: system
+        types: [python]
+
+    -   id: mypy
+        name: Check mypy static types match
+        entry: pipenv run mypy ipo_checker --ignore-missing-imports
+        pass_filenames: false
+        language: system
+        types: [python]
+
+    -   id: black
+        name: Black Formatting
+        entry: pipenv run black .
+        language: system
+        types: [python]
