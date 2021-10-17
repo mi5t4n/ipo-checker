@@ -7,6 +7,7 @@ import requests
 import inquirer
 import traceback
 
+from typing import Union
 from yachalk import chalk
 
 base_url = "https://iporesult.cdsc.com.np"
@@ -26,7 +27,7 @@ def run_ipo_checker(args):
     company = get_company()
 
     if not company:
-        print(chalk.red(f"Failed to fetch companies."))
+        print(chalk.red("Failed to fetch companies."))
 
         return
 
@@ -85,7 +86,9 @@ def get_company():
         companies = sorted(companies.items(), key=lambda x: x[1], reverse=True)
 
         questions = [
-            inquirer.List("company", message="Select the company?", choices=companies)
+            inquirer.List(
+                "company", message="Select the company?", choices=companies
+            )
         ]
 
         answers = inquirer.prompt(questions)
@@ -98,7 +101,7 @@ def get_company():
         return False
 
 
-async def check_ipo(company, investor):
+async def check_ipo(company: int, investor: str) -> Union[bool, None]:
     data = investor.strip().split(",")
     response = check_result(company, data[0])
 
@@ -118,11 +121,10 @@ async def check_ipo(company, investor):
     return False
 
 
-def check_result(company, boid):
+def check_result(company: int, boid: str) -> requests.Response:
     url = base_url + "/result/result/check"
 
     headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36",
         "Origin": base_url,
         "Referer": base_url,
         "Content-Type": "application/json",
