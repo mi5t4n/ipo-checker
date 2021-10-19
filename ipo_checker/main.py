@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 import time
+import os.path
 import asyncio
 import argparse
 import requests
@@ -9,16 +10,52 @@ import traceback
 
 from typing import Union
 from yachalk import chalk
+from pathlib import Path
 
 base_url = "https://iporesult.cdsc.com.np"
+home = Path.joinpath(Path.home(), ".config/ipo_checker.txt")
 
 
 def cli():
     parser = argparse.ArgumentParser(description="IPO Checker for a list.")
     parser.add_argument(
-        "--file", type=str, help="Name of the pattern file.", default="list.txt"
+        "--file", type=str, help="Name of the pattern file.", default=home
     )
+    parser.add_argument(
+        "--generate-config",
+        action=argparse.BooleanOptionalAction,
+        help="Generate configuration file.",
+    )
+
     args = parser.parse_args()
+    file_exits = os.path.exists(home)
+
+    if args.generate_config:
+        if file_exits:
+            print("Configuration file already exits.")
+
+            return
+
+        print(f"Generated config: {home}")
+
+        file = open(home, "x")
+        file.write("<Boid>, <Name>")
+        file.close()
+
+        return
+
+    if not args.file:
+        print("No configuration file supplied.")
+
+        return
+
+    if not file_exits:
+        print(
+            f"""Configuration file yet to be generated.
+            Run `{chalk.blue("ipo --generate-config")}`"""
+        )
+
+        return
 
     run_ipo_checker(args)
 
