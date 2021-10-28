@@ -8,6 +8,7 @@ setup(
     author="Sagar Tamang, Sagar Chamling",
     author_email="mi5t4n@gmail.com, sgr.raee@gmail.com",
     packages=["ipo_checker"],
+    python_requires=">=3.6",
     entry_points={
         "console_scripts": [
             "ipo = ipo_checker.main:cli",
